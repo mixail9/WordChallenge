@@ -4,6 +4,13 @@ spl_autoload_register(function($className){
     include __DIR__ . '/' . $className . '.php';
 });
 
+
+
+$dict = DictonaryHelper::loadDictonary('yandex');
+$dict->getWordInfo($_GET['w']);
+die();
+
+
 extract(IOHelper::extractInput());
 
 switch($action)
