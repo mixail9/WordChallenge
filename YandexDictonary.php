@@ -42,6 +42,7 @@ final class YandexDictonary implements InterfaceDictonary
         print $url . '<br>';
         $this->response = file_get_contents($url);
         $this->formatResponse();
+        print_r($this->response);
         return $this->response;
     }
     
@@ -52,7 +53,33 @@ final class YandexDictonary implements InterfaceDictonary
      */
     private function formatResponse()
     {
+        $formatedResponse = ['error' => ''];
         $this->response = json_decode($this->response, true);
+        if(!array_key_exists('def', $this->response))
+            $formatedResponse['error'] = 'empty response';
+        elseif(empty($this->response['def']))
+            $formatedResponse['error'] = 'word not found';
+        else
+        {
+            $isNoun = true;
+            $formatedResponse['pos'] = $this->response['def'][0]['pos'];
+            if($this->response['def'][0]['pos'] != 'noun')
+            {
+                $formatedResponse['error'] = 'is not noun';
+                $isNoun = false;
+            }
+            foreach($this->response['def'][0]['tr'] as $variant)
+            {
+                if(($isNoun && $variant['pos'] == 'noun') || !$isNoun)
+                    $formatedResponse['translate'][] = $variant['text'];
+                
+                if($formatedResponse['translate'] && count($formatedResponse['translate']) > 3)
+                    break;
+                    
+            }
+            $formatedResponse['translate'] = implode(', ', $formatedResponse['translate']);
+            $this->response = $formatedResponse;
+        }
     }
     
     

@@ -5,7 +5,7 @@ spl_autoload_register(function($className){
 });
 
 
-
+print '<pre>';
 $dict = DictonaryHelper::loadDictonary('yandex');
 $dict->getWordInfo($_GET['w']);
 die();
