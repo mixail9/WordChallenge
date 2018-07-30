@@ -70,61 +70,21 @@ while(time() - $startTime < 30)
 		print "new client $clientName\n";
 		$requestStr = '';
 		$prevStringIsNull = false;
-		$url = '';
-		//while(($requestStr = socket_read($newClient, 2048)) !== false)
+		$url = '';		
 		
+		$request = new RequestHttp($newClient);
+		print_r($request->getUrl());
 		
-		$requestStr = socket_read($newClient, 2048);
-		print "$clientName say\n$requestStr \n";
-		$requestHeaders = explode("\n", trim($requestStr));
-		array_walk($requestHeaders, function(&$value, $key) {
-			$value = trim($value);
-		});
-		preg_match('/^(GET|POST) (.*?) HTTP\/1\.1$/', $requestHeaders[0], $urlFull);
-		$url = $urlFull[2];
-		
-		if($urlFull[1] == 'POST')
-		{
-			$requestBody = socket_read($newClient, 2048);
-		}
 		print "end of input \n";
 		
-		//var_dump(socket_strerror(socket_last_error($newClient)));
-		if($url && in_array($url, $allowedRequestAddress))
+		if($request->getUrl() && in_array($request->getUrl(), $allowedRequestAddress))
 			socket_write($newClient, pageContent());
 		socket_close($newClient);
 		print "end client $clientName\n";
 		
 	}
-	$read = $clients;
-	$write = $except = $read;
-	$status = 0;
-	if(count($read))
-		$status = socket_select($read, $write, $except, 0);
-	foreach($read as $client)
-	{
-		$clientName = '';
-		socket_getpeername($client, $clientName);
-		$d = socket_read($client, 1000);
-		print "data from $clientName: $d\n";
-	}
-	foreach($write as $client)
-	{
-		$clientName = '';
-		socket_getpeername($client, $clientName);
-		socket_write($client, pageContent());
-		unset($clients[array_search($client, $clients)]);
-		print "write for $clientName \n";
-	}
-		
-	foreach($clients as $k => $client)
-	{
-		if(!in_array($client, $read) && !in_array($client, $write))
-		{
-			//socket_close($client);
-			//unset($clients[$k]);
-		}
-	}
 }
 socket_close($sock); 
 print "end\n";
+
+
