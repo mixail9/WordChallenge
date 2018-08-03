@@ -13,6 +13,10 @@ class Game
     
     public static function getFormatedDataForResponse($gameId)
     {
+    
+    print 'allGames = ';
+    print_r(static::$allGames);
+    print "\n";
         $data = static::$allGames[$gameId];
         foreach($data['user_list'] as &$user)
         {
@@ -23,7 +27,7 @@ class Game
     
     
 
-	public function __construct($gameId)
+	public function __construct($gameId = null)
 	{		
         $this->gameId = $gameId;
         if($gameId && intval($gameId) > 0)
@@ -39,6 +43,7 @@ class Game
                 'user_list' => [],
                 'word_by_user' => []
             ];
+            $this->saveData();
             
         }
 	}
@@ -63,19 +68,22 @@ class Game
         static::loadAllGames();
         static::$allGames[$this->gameId] = $this->game;
         $this->game = &static::$allGames[$this->gameId];
-        file_put_contents('games.txt', json_encode(static::$allGames, JSON_FORCE_OBJECT));
+        //file_put_contents('games.txt', json_encode(static::$allGames, JSON_FORCE_OBJECT));
     }
     
 	
 	protected static function loadAllGames()
 	{
-		static::$allGames = json_decode(file_get_contents('games.txt'), true);
+		if(!@$GLOBALS['game_list'])
+			$GLOBALS['game_list'] = [];
+		static::$allGames = &$GLOBALS['game_list'];
+		//static::$allGames = json_decode(file_get_contents('games.txt'), true);
 	}
         
     
     public static function findGameByUser($userId, $active = true)
     {
-        if($userId)
+        if(!$userId)
             throw new \Exception("empty userId");
         
         static::loadAllGames();
@@ -97,8 +105,18 @@ class Game
     public static function startGame($users)
     {      
         $game = new Game();
-        foreach($users as $userId)
-            $game->addUser($userId);
+        if($users && is_array($users))
+        {
+		foreach($users as $userId => $userData)
+		{
+			if(array_key_exists('id', $userData))
+		    		$game->addUser($userData['id']);
+		    	else
+		    		$game->addUser($userData['id']);
+		}
+	}
+	else
+		throw new \Exception('try start game without users');
        
         return $game;
     }
@@ -137,7 +155,7 @@ class Game
             return false;
         
         // network and system time delay beetwen users
-        if(abs($this->game['end_time'] - time()) > 5)
+        if(time() - $this->game['end_time'] > 5)
         {
             $this->game['active'] = false;
             $this->saveData();

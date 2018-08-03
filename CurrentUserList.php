@@ -8,7 +8,7 @@ class CurrentUserList {
     
     public static function exists($userId)
     {
-        if(!$userId)
+        if(!$userId || !intval($userId))
             throw new \Exception ('empty userId');
         
         return array_key_exists($userId, static::$users);

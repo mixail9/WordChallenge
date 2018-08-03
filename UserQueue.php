@@ -14,12 +14,15 @@ class UserQueue {
     
     protected function reloadData()
     {
-        $this->queue = json_decode(file_get_contents('search_new_game_list.txt'), true);
+        //$this->queue = json_decode(file_get_contents('search_new_game_list.txt'), true);
+        if(!@$GLOBALS['user_quiue'])
+        	$GLOBALS['user_quiue'] = [];
+        $this->queue = &$GLOBALS['user_quiue'];
     }
     
     protected function saveData()
     {
-        file_put_contents('search_new_game_list.txt', json_encode($this->queue, JSON_FORCE_OBJECT));
+        //file_put_contents('search_new_game_list.txt', json_encode($this->queue, JSON_FORCE_OBJECT));
     }
     
     
@@ -44,7 +47,7 @@ class UserQueue {
         if(!$userId || !intval($userId))
             throw new \Exception ('empty data');
         
-        if($this->queue[$userId])
+        if(array_key_exists($userId, $this->queue))
             return true;
         else 
             return false;
@@ -83,11 +86,12 @@ class UserQueue {
             throw new \Exception ('empty data');    
         
         if(is_array($userData) && $userData['id']) 
-            $this->queue[$userData['id']] = ['priority' => ($userData['priority'] ?: static::DEFAULT_USER_PRIORITY)];
+            $this->queue[$userData['id']] = ['id' => $userData['id'], 'priority' => ($userData['priority'] ?: static::DEFAULT_USER_PRIORITY)];
         elseif(!is_array($userData))    
-            $this->queue[$userData] = ['priority' => static::DEFAULT_USER_PRIORITY];
+            $this->queue[$userData] = ['id' => $userData, 'priority' => static::DEFAULT_USER_PRIORITY];
         else 
             throw new \Exception ('incorrect data');
+
     }
     
     
@@ -95,11 +99,12 @@ class UserQueue {
     {
         //if($this->getLength() < Game::USER_PER_GAME + 2)
         //    return null;
-        
+                    
         $users = [];
         for($i = 0; $i < min($count, $this->getLength()); $i++)
         {
             $users[] = $this->pop();
         }
+        return $users;
     }
 }
